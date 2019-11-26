@@ -247,14 +247,26 @@ module Benchmark
 
           Timing.clean_env
 
+          # Compute how many cycles are needed to run for at least 1ms
+          cycles = 1
+          while true
+            t0 = Timing.now
+            item.call_times(cycles)
+            t1 = Timing.now
+            break if Timing.time_us(t0, t1) >= 1000
+            cycles *= 2
+          end
+
+          Timing.clean_env
+
           before = Timing.now
           target = Timing.add_second before, @warmup
 
           warmup_iter = 0
 
           while Timing.now < target
-            item.call_times(1)
-            warmup_iter += 1
+            item.call_times(cycles)
+            warmup_iter += cycles
           end
 
           after = Timing.now

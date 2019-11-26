@@ -250,16 +250,21 @@ module Benchmark
           before = Timing.now
           target = Timing.add_second before, @warmup
 
-          warmup_iter = 0
-
-          while Timing.now < target
-            item.call_times(1)
-            warmup_iter += 1
+          # Run for the configured warmup time with an increasing number of
+          # cycles to reduce overhead and improve accuracy.
+          # This also avoids running with a constant number of cycles, which a
+          # JIT might speculate on and then have to recompile in #run_benchmark.
+          cycles = 1
+          warmup_iter = 1
+          warmup_time_us = 0.0
+          while Timing.now + warmup_time_us * 2 < target
+            t0 = Timing.now
+            item.call_times(cycles)
+            t1 = Timing.now
+            warmup_iter = cycles
+            warmup_time_us = Timing.time_us(t0, t1)
+            cycles *= 2
           end
-
-          after = Timing.now
-
-          warmup_time_us = Timing.time_us(before, after)
 
           @timing[item] = cycles_per_100ms warmup_time_us, warmup_iter
 

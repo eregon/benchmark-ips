@@ -50,6 +50,8 @@ module Benchmark
         def compile_block
           m = (class << self; self; end)
           code = <<-CODE
+            _prevent_caching = #{object_id} # Force re-parsing
+
             def call_times(times)
               act = @action
 
@@ -66,6 +68,8 @@ module Benchmark
         def compile_block_with_manual_loop
           m = (class << self; self; end)
           code = <<-CODE
+            _prevent_caching = #{object_id} # Force re-parsing
+
             def call_times(times)
               @action.call(times)
             end
@@ -79,6 +83,8 @@ module Benchmark
         def compile_string(str)
           m = (class << self; self; end)
           code = <<-CODE
+            _prevent_caching = #{object_id} # Force re-parsing
+
             def call_times(__total);
               __i = 0
               while __i < __total
